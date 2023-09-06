@@ -133,43 +133,43 @@ export const usePlayerStore = defineStore('playerStore', {
 
     afterActivePlayerUpdate() {
 
-      if(this.updateProgressBarInterval !== null) {
+      if (this.updateProgressBarInterval !== null) {
         clearInterval(this.updateProgressBarInterval);
       }
 
-      if(this.isPlaying === false) return;
-      if(this.activePlayer === null) return;
+      if (this.isPlaying === false) return;
+      if (this.activePlayer === null) return;
 
       this.updateProgressBarInterval = setInterval(() => {
         console.log('updatePlayerState')
-        if(this.activePlayer === null) {
+        if (this.activePlayer === null) {
           clearInterval(this.updateProgressBarInterval);
           return;
         }
-        this.activePlayer.progress_ms += 500;
+        this.activePlayer.progress_ms = Number(this.activePlayer.progress_ms) + 500;
       }, 500);
 
-      const timeoutDuration = this.activePlayer.item.duration_ms - this.activePlayer.progress_ms + 250;
+      const timeoutDuration = Number(this.activePlayer.item.duration_ms) - Number(this.activePlayer.progress_ms) + 250;
       this.updatePlayerTimeout = setTimeout(() => {
         this.getActivePlayer(true);
       }, timeoutDuration);
 
-      if(this.loopOptions.active === true) return;
+      if (this.loopOptions.active === true) return;
       this.loopOptions.start_ms = 0;
       this.loopOptions.end_ms = this.activePlayer.item.duration_ms;
 
     },
 
-    async getActivePlayer(silent = false): Promise<any> {
+    async getActivePlayer(silent = false, retry = false): Promise<any> {
       const userStore = useUserStore();
       const pageStore = usePageStore();
 
       clearInterval(this.updateProgressBarInterval);
 
-      if(silent === false) {
+      if (silent === false) {
         pageStore.startLoading();
       }
-      
+
       try {
         const response = await axios({
           method: 'GET',
@@ -179,22 +179,30 @@ export const usePlayerStore = defineStore('playerStore', {
           }
         });
 
-        console.log('response.data', response.data)
-        if(typeof response.data === 'object' && typeof response.data.item === 'object') {
-          this.activePlayer = response.data as SpotifyCurrentlyPlaying;          
+        if (typeof response.data === 'object' && typeof response.data.item === 'object') {
+          this.activePlayer = response.data as SpotifyCurrentlyPlaying;
+        } else {
+          this.activePlayer = null;
         }
 
         this.afterActivePlayerUpdate();
 
       } catch (err: any) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Fehler',
-          text: 'Es gaben einen Fehler beim Update des Player-Status.',
-        })
+
+        if (retry === true) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Fehler',
+            text: 'Es gaben einen Fehler beim Update des Player-Status.',
+          })
+        } else {
+          await userStore.refreshAccessToken();
+          await this.getActivePlayer(silent, true);
+        }
+
       }
-      
-      if(silent === false) {
+
+      if (silent === false) {
         pageStore.stopLoading();
       }
     },
@@ -204,11 +212,11 @@ export const usePlayerStore = defineStore('playerStore', {
     },
 
     hasAlbumCover(): boolean {
-      if(this.isPlaying === false) return false;
+      if (this.isPlaying === false) return false;
       return this.activePlayer !== null && this.activePlayer.item && this.activePlayer.item.album && this.activePlayer.item.album.images && this.activePlayer.item.album.images.length > 0;
     },
 
-    getCurrentAlbumCoverUrl (): string {
+    getCurrentAlbumCoverUrl(): string {
       if (this.activePlayer && this.activePlayer.item && this.activePlayer.item.album && this.activePlayer.item.album.images) {
         console.log('this.activePlayer.item.album.images[0].url', this.activePlayer.item.album.images[0].url)
         return this.activePlayer.item.album.images[0].url;
@@ -216,33 +224,33 @@ export const usePlayerStore = defineStore('playerStore', {
         return '';
       }
     },
-    setCurrentLoopStart (ms: number) {
+    setCurrentLoopStart(ms: number) {
       this.loopOptions.start_ms = ms;
     },
-    setCurrentLoopEnd (ms: number) {
+    setCurrentLoopEnd(ms: number) {
       this.loopOptions.end_ms = ms;
     },
     async startLoop() {
 
-      if(this.loopInterval !== null) {
+      if (this.loopInterval !== null) {
         clearTimeout(this.loopInterval);
       }
       this.loopOptions.active = true;
-      
+
       this.setPlayerToPosition(this.loopOptions.start_ms);
       this.loopInterval = setTimeout(() => {
-        if(this.activePlayer === null) return;
+        if (this.activePlayer === null) return;
         this.startLoop();
       }, this.getCurrentLoopDuration + 1000);
     },
     stopLoop() {
       this.loopOptions.active = false;
-      if(this.loopInterval !== null) {
+      if (this.loopInterval !== null) {
         clearTimeout(this.loopInterval);
       }
     },
     async setPlayerToPosition(position_ms: number) {
-      if(this.activePlayer === null) return;
+      if (this.activePlayer === null) return;
       const userStore = useUserStore();
       await axios({
         method: 'PUT',
@@ -257,7 +265,7 @@ export const usePlayerStore = defineStore('playerStore', {
           position_ms: position_ms
         }
       })
-      this.activePlayer.progress_ms = this.loopOptions.start_ms;
+      this.activePlayer.progress_ms = position_ms;
     }
   },
   getters: {
@@ -271,59 +279,59 @@ export const usePlayerStore = defineStore('playerStore', {
       return this.activePlayer && this.activePlayer.device;
     },
     getCurrentProgress(): string {
-      if(this.activePlayer === null) return '0:00';
+      if (this.activePlayer === null) return '0:00';
       const minutes = Math.floor(this.activePlayer.progress_ms / 60000)
       const seconds = ((this.activePlayer.progress_ms % 60000) / 1000).toFixed(0)
       return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`
     },
     getTotalDuration(): string {
-      if(this.activePlayer === null) return '0:00';
+      if (this.activePlayer === null) return '0:00';
       const minutes = Math.floor(this.activePlayer.item.duration_ms / 60000)
       const seconds = ((this.activePlayer.item.duration_ms % 60000) / 1000).toFixed(0)
       return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`
     },
     getTotalDurationMs(): number {
-      if(this.activePlayer === null) return 0;
+      if (this.activePlayer === null) return 0;
       return this.activePlayer.item.duration_ms;
     },
     getPercentageProgress(): string {
-      if(this.activePlayer === null) return '0';
+      if (this.activePlayer === null) return '0';
       return (this.activePlayer.progress_ms / this.activePlayer.item.duration_ms * 100).toFixed(2)
     },
     getCurrentTrackame(): string {
-      if(this.activePlayer === null) return '';
+      if (this.activePlayer === null) return '';
       return this.activePlayer.item.name;
     },
     getCurrentArtist(): string {
-      if(this.activePlayer === null) return '';
+      if (this.activePlayer === null) return '';
       return this.activePlayer.item.artists.map((artist) => artist.name).join(', ');
     },
     getCurrentLoopStart(): number {
-      if(this.activePlayer === null) return 0;
+      if (this.activePlayer === null) return 0;
       return this.loopOptions.start_ms
     },
     getCurrentLoopStartFormatted(): string {
-      if(this.activePlayer === null) return '0:00';
+      if (this.activePlayer === null) return '0:00';
       const minutes = Math.floor(this.loopOptions.start_ms / 60000)
       const seconds = ((this.loopOptions.start_ms % 60000) / 1000).toFixed(0)
       return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`
     },
     getCurrentLoopEnd(): number {
-      if(this.activePlayer === null) return 0;
+      if (this.activePlayer === null) return 0;
       return this.loopOptions.end_ms
     },
     getCurrentLoopEndFormatted(): string {
-      if(this.activePlayer === null) return '0:00';
+      if (this.activePlayer === null) return '0:00';
       const minutes = Math.floor(this.loopOptions.end_ms / 60000)
       const seconds = ((this.loopOptions.end_ms % 60000) / 1000).toFixed(0)
       return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`
     },
     getCurrentLoopDuration(): number {
-      if(this.activePlayer === null) return 0;
+      if (this.activePlayer === null) return 0;
       return this.loopOptions.end_ms - this.loopOptions.start_ms
     },
     getCurrentLoopDurationFormatted(): string {
-      if(this.activePlayer === null) return '0:00';
+      if (this.activePlayer === null) return '0:00';
       const minutes = Math.floor((this.loopOptions.end_ms - this.loopOptions.start_ms) / 60000)
       const seconds = (((this.loopOptions.end_ms - this.loopOptions.start_ms) % 60000) / 1000).toFixed(0)
       return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`
