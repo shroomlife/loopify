@@ -8,11 +8,7 @@
 
     <Header />
 
-    <Notifications />
-
-    <div class="container">
-      <slot />
-    </div>
+    <slot />
 
     <Footer />
   </main>
@@ -55,7 +51,7 @@ main {
   padding-top: $header-height;
   padding-bottom: $footer-height;
 
-  .container {
+  > .container {
     padding: $default-padding;
   }
 }

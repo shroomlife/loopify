@@ -16,8 +16,7 @@ interface PlayerState {
   activePlayer: SpotifyCurrentlyPlaying | null;
   loopOptions: LoopOptions;
   updateProgressBarInterval: any | null;
-  updatePlayerTimeout: any | null;
-  loopInterval: any | null;
+  updatePlayerInterval: any | null;
 }
 
 interface SpotifyImage {
@@ -125,69 +124,82 @@ export const usePlayerStore = defineStore('playerStore', {
       end_ms: 0
     },
     updateProgressBarInterval: null,
-    updatePlayerTimeout: null,
-    loopInterval: null
+    updatePlayerInterval: null,
   }),
 
   actions: {
 
-    afterActivePlayerUpdate() {
+    updateIntervals() {
 
-      if (this.updateProgressBarInterval !== null) {
-        clearInterval(this.updateProgressBarInterval);
-      }
+      clearInterval(this.updateProgressBarInterval);
+      clearInterval(this.updatePlayerInterval);
 
       if (this.isPlaying === false) return;
-      if (this.activePlayer === null) return;
 
       this.updateProgressBarInterval = setInterval(() => {
-        console.log('updatePlayerState')
         if (this.activePlayer === null) {
           clearInterval(this.updateProgressBarInterval);
           return;
         }
-        this.activePlayer.progress_ms = Number(this.activePlayer.progress_ms) + 500;
-      }, 500);
+        this.activePlayer.progress_ms = Number(this.activePlayer.progress_ms) + 1000;
 
-      const timeoutDuration = Number(this.activePlayer.item.duration_ms) - Number(this.activePlayer.progress_ms) + 250;
-      this.updatePlayerTimeout = setTimeout(() => {
-        this.getActivePlayer(true);
-      }, timeoutDuration);
+        if (this.activePlayer.progress_ms >= this.activePlayer.item.duration_ms) {
+          this.updateCurrentPlayerState();
+        }
 
-      if (this.loopOptions.active === true) return;
-      this.loopOptions.start_ms = 0;
-      this.loopOptions.end_ms = this.activePlayer.item.duration_ms;
+        if (this.activePlayer.progress_ms >= this.loopOptions.end_ms && this.isLoopActive) {
+          this.setPlayerToPosition(this.loopOptions.start_ms);
+        }
+
+      }, 1000);
+
+      this.updatePlayerInterval = setInterval(() => {
+        if (this.activePlayer === null) {
+          clearInterval(this.updatePlayerInterval);
+          return;
+        }
+        this.updateCurrentPlayerState();
+      }, 15000);
 
     },
 
-    async getActivePlayer(silent = false, retry = false): Promise<any> {
+    async updateCurrentPlayerState(retry: boolean = false) {
+
       const userStore = useUserStore();
-      const pageStore = usePageStore();
 
-      clearInterval(this.updateProgressBarInterval);
-
-      if (silent === false) {
-        pageStore.startLoading();
-      }
+      const songIdBefore = this.activePlayer ? this.activePlayer.item.id : null;
 
       try {
+        
         const response = await axios({
           method: 'GET',
           url: 'https://api.spotify.com/v1/me/player',
           headers: {
-            'Authorization': `Bearer ${userStore.token}`
+            'Authorization': `Bearer ${userStore.getToken}`
           }
         });
-
+  
         if (typeof response.data === 'object' && typeof response.data.item === 'object') {
           this.activePlayer = response.data as SpotifyCurrentlyPlaying;
         } else {
           this.activePlayer = null;
         }
+  
+        if (this.activePlayer !== null && songIdBefore !== this.activePlayer.item.id) {
+          this.stopLoop();
+          this.setCurrentLoopStart(0);
+          this.setCurrentLoopEnd(this.activePlayer.item.duration_ms);
+        }
+  
+        if (this.activePlayer !== null) {
+          this.updateIntervals();
+        }
+  
+        if (this.isPlaying === false) {
+          this.stopLoop();
+        }
 
-        this.afterActivePlayerUpdate();
-
-      } catch (err: any) {
+      } catch (error) {
 
         if (retry === true) {
           Swal.fire({
@@ -197,16 +209,12 @@ export const usePlayerStore = defineStore('playerStore', {
           })
         } else {
           await userStore.refreshAccessToken();
-          await this.getActivePlayer(silent, true);
+          await this.updateCurrentPlayerState(true);
         }
 
       }
 
-      if (silent === false) {
-        pageStore.stopLoading();
-      }
     },
-
     setLoopOptions(options: LoopOptions) {
       this.loopOptions = options;
     },
@@ -218,7 +226,6 @@ export const usePlayerStore = defineStore('playerStore', {
 
     getCurrentAlbumCoverUrl(): string {
       if (this.activePlayer && this.activePlayer.item && this.activePlayer.item.album && this.activePlayer.item.album.images) {
-        console.log('this.activePlayer.item.album.images[0].url', this.activePlayer.item.album.images[0].url)
         return this.activePlayer.item.album.images[0].url;
       } else {
         return '';
@@ -231,41 +238,104 @@ export const usePlayerStore = defineStore('playerStore', {
       this.loopOptions.end_ms = ms;
     },
     async startLoop() {
-
-      if (this.loopInterval !== null) {
-        clearTimeout(this.loopInterval);
-      }
       this.loopOptions.active = true;
-
       this.setPlayerToPosition(this.loopOptions.start_ms);
-      this.loopInterval = setTimeout(() => {
-        if (this.activePlayer === null) return;
-        this.startLoop();
-      }, this.getCurrentLoopDuration + 1000);
     },
     stopLoop() {
       this.loopOptions.active = false;
-      if (this.loopInterval !== null) {
-        clearTimeout(this.loopInterval);
-      }
     },
     async setPlayerToPosition(position_ms: number) {
-      if (this.activePlayer === null) return;
+
+      await this.updateCurrentPlayerState();
+
+      if (
+        this.activePlayer === null ||
+        this.isPlaying === false ||
+        this.isLoopActive === false
+      ) {
+        return;
+      }
+
       const userStore = useUserStore();
       await axios({
         method: 'PUT',
-        url: 'https://api.spotify.com/v1/me/player/play',
+        url: `https://api.spotify.com/v1/me/player/seek?position_ms=${position_ms}`,
         headers: {
-          'Authorization': `Bearer ${userStore.token}`
-        },
-        data: {
-          uris: [
-            this.activePlayer.item.uri
-          ],
-          position_ms: position_ms
+          'Authorization': `Bearer ${userStore.getToken}`
         }
       })
+
       this.activePlayer.progress_ms = position_ms;
+    },
+    async stopPlayer() {
+
+      if (this.activePlayer === null) return;
+
+      this.stopLoop();
+
+      clearInterval(this.updateProgressBarInterval);
+      clearInterval(this.updatePlayerInterval);
+
+      const userStore = useUserStore();
+
+      await axios({
+        method: 'PUT',
+        url: 'https://api.spotify.com/v1/me/player/pause',
+        headers: {
+          'Authorization': `Bearer ${userStore.getToken}`
+        }
+      })
+
+      await this.updateCurrentPlayerState();
+
+    },
+    async skipPrevious() {
+
+      if (this.activePlayer === null) return;
+      this.stopLoop();
+
+      const pageStore = usePageStore();
+      pageStore.startLoading();
+
+      const userStore = useUserStore();
+
+      await axios({
+        method: 'POST',
+        url: 'https://api.spotify.com/v1/me/player/previous',
+        headers: {
+          'Authorization': `Bearer ${userStore.getToken}`
+        }
+      })
+
+      setTimeout(() => {
+        this.updateCurrentPlayerState();
+        pageStore.stopLoading();
+      }, 500)
+
+    },
+    async skipNext() {
+
+      if (this.activePlayer === null) return;
+      this.stopLoop();
+
+      const pageStore = usePageStore();
+      pageStore.startLoading();
+
+      const userStore = useUserStore();
+
+      await axios({
+        method: 'POST',
+        url: 'https://api.spotify.com/v1/me/player/next',
+        headers: {
+          'Authorization': `Bearer ${userStore.getToken}`
+        }
+      })
+
+      setTimeout(() => {
+        this.updateCurrentPlayerState();
+        pageStore.stopLoading();
+      }, 500)
+
     }
   },
   getters: {
@@ -301,6 +371,10 @@ export const usePlayerStore = defineStore('playerStore', {
     getCurrentTrackame(): string {
       if (this.activePlayer === null) return '';
       return this.activePlayer.item.name;
+    },
+    getCurrentTrackId(): string {
+      if (this.activePlayer === null) return '';
+      return this.activePlayer.item.id;
     },
     getCurrentArtist(): string {
       if (this.activePlayer === null) return '';

@@ -1,14 +1,16 @@
 <template>
   <footer>
-    <div class="d-flex flex-column justify-content-between">
-      <span>
-        <Logo />
-      </span>
-      <small>&copy; 2023</small>
-    </div>
-    <div class="d-flex flex-column justify-content-end footer-links">
-      <NuxtLink to="datenschutz">Datenschutz</NuxtLink>
-      <NuxtLink to="impressum">Impressum</NuxtLink>
+    <div class="container">
+      <div class="d-flex flex-column justify-content-between">
+        <span>
+          <Logo />
+        </span>
+        <small>&copy; 2023</small>
+      </div>
+      <div class="d-flex flex-column justify-content-end footer-links">
+        <NuxtLink to="datenschutz">Datenschutz</NuxtLink>
+        <NuxtLink to="impressum">Impressum</NuxtLink>
+      </div>
     </div>
   </footer>
 </template>
@@ -27,6 +29,11 @@ footer {
   display: flex;
   justify-content: space-between;
 
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .logo {
     height: 22px;
   }
@@ -36,13 +43,12 @@ footer {
   }
 
   .footer-links a {
-    color: #FFF;
+    color: #fff;
     text-align: right;
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
     text-decoration: none;
   }
-
 }
 </style>

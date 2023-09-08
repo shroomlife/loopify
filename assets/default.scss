@@ -4,3 +4,31 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+.container {
+  padding: 0;
+  max-width: 640px;
+}
+
+a.circle-btn {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  background-color: white;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid $light-gray;
+  box-shadow: 0 0 3px rgba($color: #000000, $alpha: .4);
+
+  i {
+    color: $black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+}
+
+h1 {
+  margin-bottom: 30px;
+}

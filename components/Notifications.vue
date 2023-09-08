@@ -1,7 +1,9 @@
 <template>
   <div class="notifications">
-    <div v-if="!userStore.loggedIn" class="alert alert-info" role="alert">
-      Du musst dich erst mit Spotify anmelden.
+    <div class="container">
+      <div v-if="!userStore.loggedIn" class="alert alert-info" role="alert">
+        Du musst dich erst mit Spotify anmelden.
+      </div>
     </div>
   </div>
 </template>

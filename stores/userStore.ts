@@ -1,9 +1,5 @@
-// store/userStore.ts
-
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import { usePlayerStore } from './playerStore';
-import qs from 'qs';
 import { usePageStore } from './pageStore';
 import Swal from 'sweetalert2';
 
@@ -25,16 +21,24 @@ function getRandomString(length: number) {
   return result;
 }
 
+const localStorageIdentifier = {
+  token: 'loopifyUserToken',
+  refreshToken: 'loopifyUserRefreshToken'
+}
+
 export const useUserStore = defineStore('userStore', {
   state: (): UserState => ({
-    token: sessionStorage.getItem('token'),
-    refreshToken: sessionStorage.getItem('refreshToken'),
+    token: localStorage.getItem(localStorageIdentifier.token),
+    refreshToken: localStorage.getItem(localStorageIdentifier.refreshToken),
     tokenValidated: false
   }),
 
   getters: {
     loggedIn(): boolean {
       return !!this.tokenValidated;
+    },
+    getToken(): string | null {
+      return this.token;
     }
   },
 
@@ -43,7 +47,6 @@ export const useUserStore = defineStore('userStore', {
     doLogin() {
 
       const config = useRuntimeConfig();
-      console.log('config', config)
 
       const pageStore = usePageStore();
       pageStore.startLoading();
@@ -67,8 +70,6 @@ export const useUserStore = defineStore('userStore', {
 
     async getAccessTokenFromCode(code: string) {
 
-      console.log('getAccessTokenFromCode', code)
-
       const { data } = await useFetch('/api/spotify/auth', {
         method: 'POST',
         body: {
@@ -76,7 +77,6 @@ export const useUserStore = defineStore('userStore', {
         }
       })
     
-      console.log('data', data)
       if (typeof data.value.access_token !== 'undefined') {
         this.setToken(data.value.access_token);
         this.setRefreshToken(data.value.refresh_token);
@@ -99,7 +99,7 @@ export const useUserStore = defineStore('userStore', {
         }
 
         const playerStore = usePlayerStore();
-        await playerStore.getActivePlayer();
+        await playerStore.updateCurrentPlayerState();
         return true;
 
       } catch (err) {
@@ -111,25 +111,29 @@ export const useUserStore = defineStore('userStore', {
 
     setToken(token: string) {
       this.token = token;
-      sessionStorage.setItem('token', token);
+      localStorage.setItem(localStorageIdentifier.token, token);
     },
 
     setRefreshToken(refreshToken: string) {
       this.refreshToken = refreshToken;
-      sessionStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem(localStorageIdentifier.refreshToken, refreshToken);
     },
 
     async validateToken(): Promise<boolean> {
 
-      if (!this.token) {
-        return false;
+      if (!this.getToken) {
+        if (this.refreshToken) {
+          await this.refreshAccessToken();
+        } else {
+          return false;
+        }
       }
 
       const playerStore = usePlayerStore();
       
       try {
         this.tokenValidated = true;
-        await playerStore.getActivePlayer();
+        await playerStore.updateCurrentPlayerState();
         return true;
 
       } catch (err: any) {
@@ -147,8 +151,8 @@ export const useUserStore = defineStore('userStore', {
 
       this.token = null;
       this.refreshToken = null;
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refreshToken');
+      localStorage.removeItem(localStorageIdentifier.token);
+      localStorage.removeItem(localStorageIdentifier.refreshToken);
 
       const playerStore = usePlayerStore();
       playerStore.activePlayer = null;

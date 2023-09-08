@@ -1,9 +1,11 @@
 <template>
-  <div class="album-cover">
+  <div class="album-cover" ref="albumCover" :style="{ height: computedHeight }">
 
-    <a v-if="userStore.loggedIn" href="javascript:" class="btn btn-light" @click="playerStore.getActivePlayer">
+    <a v-if="userStore.loggedIn" href="javascript:" class="btn btn-light circle-btn reload-btn" @click="playerStore.updateCurrentPlayerState">
       <BootstrapIcon name="arrow-clockwise" />
     </a>
+
+    <PlayerControls />
 
     <img v-if="playerStore.hasAlbumCover()" :src="playerStore.getCurrentAlbumCoverUrl()" />
     <div v-else class="album-loading">
@@ -32,26 +34,64 @@ import { usePlayerStore } from "~/stores/playerStore";
 import { useUserStore } from "~/stores/userStore";
 const playerStore = usePlayerStore();
 const userStore = useUserStore();
+
+
+const albumCover: Ref<HTMLElement | null> = ref(null);  // reference to the DOM element
+
+// Dynamically compute height based on width
+const computedHeight = computed(() => {
+  if (albumCover.value) {
+    return `${albumCover.value.clientWidth}px`;
+  }
+  return 'auto';
+});
+
+const handleResize = () => {
+  // Force reactivity system to re-evaluate the computed property
+  computedHeight.value;
+};
+
+// To make sure computedHeight is evaluated after the component is mounted
+onMounted(() => {
+  watchEffect(() => computedHeight.value);
+  window.addEventListener('resize', handleResize);
+});
+
+// Cleanup: remove event listener when component is destroyed/unmounted
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
 </script>
 
 <style lang="scss" scoped>
 .album-cover {
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 640px;
+  min-width: 300px;
+  min-height: 300px;
+
   margin-bottom: 30px;
   position: relative;
 
   img {
-    width: 300px;
-    height: 300px;
+    width: 100%;
+    height: auto;
   }
 
   .album-loading {
 
     background-color: #F2F2F2;
 
-    width: inherit;
-    height: inherit;
+    width: 100%;
+    height: 100%;
+
+    // max-width: 640px;
+    // max-height: 640px;
+
+    // min-width: 100%;
+    // min-height: 100%;
 
     display: flex;
     justify-content: center;
@@ -64,27 +104,10 @@ const userStore = useUserStore();
 
   }
 
-  a {
-    display: flex;
-    width: 32px;
-    height: 32px;
-    position: absolute;
-    background-color: white;
-    justify-content: center;
-    align-items: center;
-    border-radius: 16px;
-    border: 1px solid $light-gray;
-    box-shadow: 0 0 3px rgba($color: #000000, $alpha: .4);
+  .reload-btn {
     top: 10px;
     right: 10px;
-
-    i {
-      color: $black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
+    position: absolute;
   }
 
 }
