@@ -30,6 +30,8 @@ Dieser Befehl erledigt die folgenden Schritte:
 2. Bauen des Docker-Images.
 3. Pushen des Docker-Images zu deiner konfigurierten Registry.
 
-## Deployment auf `shroom001`
+## Wichtige Umgebungsvariable
 
-Das Docker-Image läuft auf `shroom001`. Stelle sicher, dass du die richtige Konfiguration für den Container auf diesem Server verwendest.
+Damit die App korrekt funktioniert, muss die Umgebungsvariable `SPOTIFY_REDIRECT_URL` gesetzt sein. Diese URL wird für die Authentifizierung mit Spotify benötigt.
+
+Um diese einzurichten, musst du eine Spotify App erstellen. Gehe dazu zu [Spotify Developer Dashboard](https://developer.spotify.com/) und erstelle eine neue App. Stelle sicher, dass die `SPOTIFY_REDIRECT_URL` in den Einstellungen der Spotify App korrekt konfiguriert ist.
