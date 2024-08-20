@@ -1,63 +1,35 @@
-# Nuxt 3 Minimal Starter
+# loopify
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Setup mit Bun
 
-## Setup
-
-Make sure to install the dependencies:
+Installiere die Abhängigkeiten mit [Bun](https://bun.sh/):
 
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
+bun install
 ```
 
 ## Development Server
 
-Start the development server on `http://localhost:3000`:
+Starte den Entwicklungsserver auf `http://localhost:3000`:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
+bun run dev
 ```
 
-## Production
+## Produktion und Docker Image bauen und pushen
 
-Build the application for production:
+Führe den folgenden Befehl aus, um die Applikation für die Produktion zu bauen und das Docker-Image zu erstellen sowie in eine Registry zu pushen:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
+bun run pb:dev
 ```
 
-Locally preview production build:
+Dieser Befehl erledigt die folgenden Schritte:
 
-```bash
-# npm
-npm run preview
+1. Erstellen des Produktions-Builds der Applikation.
+2. Bauen des Docker-Images.
+3. Pushen des Docker-Images zu deiner konfigurierten Registry.
 
-# pnpm
-pnpm run preview
+## Deployment auf `shroom001`
 
-# yarn
-yarn preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Das Docker-Image läuft auf `shroom001`. Stelle sicher, dass du die richtige Konfiguration für den Container auf diesem Server verwendest.
