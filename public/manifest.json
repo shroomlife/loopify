@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "manifest_version": 3,
+  "name": "loopify",
+  "short_name": "loopify",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait",
+  "default_locale": "de",
+  "scope": "/",
+  "start_url": "/",
+  "homepage_url": "https://loopify.pro",
+  "developer": {
+    "name": "Robin Lehmann",
+    "url": "https://shroomlife.de"
+  },
+  "offline_enabled": true,
+  "version": "1.0.0"
+}

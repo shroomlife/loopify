@@ -141,7 +141,6 @@ import { usePageStore } from "~/stores/pageStore";
 
 const userStore = useUserStore();
 const playerStore = usePlayerStore();
-const pageStore = usePageStore();
 
 const computedPlayerProgressStyle = computed(() => {
   return `width: ${playerStore.getPercentageProgress}%;`;

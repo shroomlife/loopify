@@ -13,7 +13,7 @@
 
     <strong>Kontakt:</strong>
     <p>
-      E-Mail: hello@loopify.pro
+      E-Mail: <a href="mailto:loopify@shroomlife.de">loopify@shroomlife.de</a>
     </p>
   </div>
 </template>

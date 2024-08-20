@@ -1,7 +1,8 @@
 # Build stage
-FROM node:16-alpine AS builder
+FROM node:18-alpine AS builder
 
 ENV SPOTIFY_REDIRECT_URL=https://loopify.pro
+ENV GOOGLE_ADSENSE_CLIENT_ID=ca-pub-6886076043360137
 
 RUN mkdir -p /usr/src/nuxt-app
 WORKDIR /usr/src/nuxt-app
