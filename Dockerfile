@@ -1,17 +1,18 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
-ENV SPOTIFY_REDIRECT_URL=https://loopify.pro
-ENV GOOGLE_ADSENSE_CLIENT_ID=ca-pub-6886076043360137
+ENV SPOTIFY_REDIRECT_URL=https://loopify.shroomlife.de
+
+RUN corepack enable
 
 RUN mkdir -p /usr/src/nuxt-app
 WORKDIR /usr/src/nuxt-app
 COPY . .
 
-RUN npm install
+RUN pnpm install
 
 ENV NODE_ENV=production
-RUN npm run build
+RUN pnpm run build
 
 # Runtime stage
 FROM node:20-alpine
