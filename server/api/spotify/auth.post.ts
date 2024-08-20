@@ -11,8 +11,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const clientId = "a4404ccecd5d4823b9d41ee6d538086e";
-  const secretId = "3fe4672235c04d02b66d9b6de0efe6e9";
+  const runtimeConfig = useRuntimeConfig();
+  const clientId = runtimeConfig.spotify.clientId;
+  const secretId = runtimeConfig.spotify.clientSecret;
 
   const config = useRuntimeConfig()
   const requestUrl = config.public.spotifyRedirectUrl;
