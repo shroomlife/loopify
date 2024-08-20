@@ -51,7 +51,7 @@ export const useUserStore = defineStore('userStore', {
       const pageStore = usePageStore();
       pageStore.startLoading();
 
-      const clientId = 'a4404ccecd5d4823b9d41ee6d538086e';
+      const clientId = config.spotify.clientId;
       const scope = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
       const redirectUri = config.public.spotifyRedirectUrl;
       const state = getRandomString(16);

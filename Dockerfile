@@ -1,8 +1,6 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-ENV SPOTIFY_REDIRECT_URL=https://loopify.shroomlife.de
-
 RUN corepack enable
 
 RUN mkdir -p /usr/src/nuxt-app

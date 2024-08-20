@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
   const secretId = runtimeConfig.spotify.clientSecret;
 
   const config = useRuntimeConfig()
+  console.log('config', config)
   const requestUrl = config.public.spotifyRedirectUrl;
 
   const tokenRequestBody = qs.stringify({
