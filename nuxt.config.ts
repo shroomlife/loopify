@@ -1,5 +1,4 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-console.log(process.env)
 export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: [
@@ -24,11 +23,11 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     spotify: {
-      clientId: process.env.SPOTIFY_CLIENT_ID,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET
+      clientId: process.env.NUXT_SPOTIFY_CLIENT_ID,
+      clientSecret: process.env.NUXT_SPOTIFY_CLIENT_SECRET
     },
     public: {
-      spotifyRedirectUrl: process.env.SPOTIFY_REDIRECT_URL || 'http://localhost:8080',
+      spotifyRedirectUrl: process.env.NUXT_PUBLIC_SPOTIFY_REDIRECT_URL || 'http://localhost:8080',
     }
   }
 })

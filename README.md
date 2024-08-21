@@ -30,8 +30,18 @@ Dieser Befehl erledigt die folgenden Schritte:
 2. Bauen des Docker-Images.
 3. Pushen des Docker-Images zu deiner konfigurierten Registry.
 
-## Wichtige Umgebungsvariable
+## Wichtige Umgebungsvariablen
 
-Damit die App korrekt funktioniert, muss die Umgebungsvariable `SPOTIFY_REDIRECT_URL` gesetzt sein. Diese URL wird für die Authentifizierung mit Spotify benötigt.
+Damit die App korrekt funktioniert, müssen folgende Umgebungsvariablen gesetzt und an den Container gehangen werden:
 
-Um diese einzurichten, musst du eine Spotify App erstellen. Gehe dazu zu [Spotify Developer Dashboard](https://developer.spotify.com/) und erstelle eine neue App. Stelle sicher, dass die `SPOTIFY_REDIRECT_URL` in den Einstellungen der Spotify App korrekt konfiguriert ist.
+- `NUXT_SPOTIFY_CLIENT_ID`
+- `NUXT_SPOTIFY_CLIENT_SECRET`
+- `NUXT_PUBLIC_SPOTIFY_REDIRECT_URL`
+
+Diese Variablen werden für die Authentifizierung mit Spotify benötigt.
+
+Um diese einzurichten:
+
+1. Erstelle eine Spotify App im [Spotify Developer Dashboard](https://developer.spotify.com/).
+2. Setze `NUXT_SPOTIFY_CLIENT_ID` und `NUXT_SPOTIFY_CLIENT_SECRET` mit den entsprechenden Werten aus der Spotify App.
+3. Stelle sicher, dass `NUXT_PUBLIC_SPOTIFY_REDIRECT_URL` korrekt konfiguriert ist und mit der in der Spotify App angegebenen Redirect-URL übereinstimmt.
