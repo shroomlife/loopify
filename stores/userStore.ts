@@ -46,14 +46,14 @@ export const useUserStore = defineStore('userStore', {
 
     doLogin() {
 
-      const config = useRuntimeConfig();
+      const runtimeConfig = useRuntimeConfig();
 
       const pageStore = usePageStore();
       pageStore.startLoading();
 
-      const clientId = config.spotify.clientId;
+      const clientId = String(runtimeConfig.public.spotify.clientId);
       const scope = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
-      const redirectUri = config.public.spotifyRedirectUrl;
+      const redirectUri = String(runtimeConfig.public.spotifyRedirectUrl);
       const state = getRandomString(16);
     
       let params = new URLSearchParams();

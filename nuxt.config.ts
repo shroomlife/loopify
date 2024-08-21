@@ -23,11 +23,13 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     spotify: {
-      clientId: process.env.NUXT_SPOTIFY_CLIENT_ID,
       clientSecret: process.env.NUXT_SPOTIFY_CLIENT_SECRET
     },
     public: {
-      spotifyRedirectUrl: process.env.NUXT_PUBLIC_SPOTIFY_REDIRECT_URL || 'http://localhost:8080',
+      spotify: {
+        clientId: process.env.NUXT_PUBLIC_SPOTIFY_CLIENT_ID,
+        redirectUrl: process.env.NUXT_PUBLIC_SPOTIFY_REDIRECT_URL || 'http://localhost:8080',
+      }
     }
   }
 })
